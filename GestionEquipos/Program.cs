@@ -86,6 +86,13 @@ namespace GestionEquipos
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateLifetime = true
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context => {
+                        Console.WriteLine("Token falló: " + context.Exception.Message);
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             builder.Services.AddAuthorization(options =>
