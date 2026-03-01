@@ -62,7 +62,7 @@ La API expondrá los endpoints configurados (revisa `GestionEquipos/Controllers`
 
 ## Endpoints principales
 
-- Autenticación: `AuthenticationController` (login, register, refresh tokens según implementación).
+- Autenticación: `AuthenticationController` (login y register).
 - Gestión de roles: `RolesController`.
 
 Revisa las clases en [GestionEquipos/Controllers](GestionEquipos/Controllers) para ver rutas y contratos exactos.
