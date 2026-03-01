@@ -97,5 +97,55 @@ namespace GestionEquipos.Config
                 return resultado;
             }
         }
+
+        public async Task<(int TotalCount, DataTable Rows)> SeleccionarMultipleAsync(SqlCommand cmd)
+        {
+            var dt = new DataTable();
+            int totalCount = 0;
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    cmd.Connection = connection;
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    await connection.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (reader != null)
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                try
+                                {
+                                    totalCount = reader["TotalCount"] != DBNull.Value ? Convert.ToInt32(reader["TotalCount"]) : Convert.ToInt32(reader.GetValue(0));
+                                }
+                                catch
+                                {
+                                    totalCount = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0));
+                                }
+                            }
+
+                            if (await reader.NextResultAsync())
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return (totalCount, dt);
+        }
     }
 }

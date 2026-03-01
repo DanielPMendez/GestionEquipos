@@ -15,21 +15,21 @@ namespace GestionEquipos.Controllers
 
         public AuthenticationController(IAuthService usuarioService) => _usuarioService = usuarioService;
 
-        [HttpGet("login")]
+        [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
+        public async Task<IActionResult> Login(Login login)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(login.username) || string.IsNullOrEmpty(login.password))
             {
                 throw new ArgumentException("El usuario y/o la contraseña son requeridos.");
             }
 
-            var token = await _usuarioService.LoginAsync(username, password);
+            var token = await _usuarioService.LoginAsync(login.username, login.password);
             if (token == null)
             {
                 return Unauthorized(new { Message = "Credenciales inválidas" });

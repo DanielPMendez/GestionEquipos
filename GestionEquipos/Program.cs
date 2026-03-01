@@ -1,4 +1,4 @@
-using FluentValidation;
+ï»¿using FluentValidation;
 using GestionEquipos.Config;
 using GestionEquipos.RepositoryPattern;
 using GestionEquipos.ServiceLayer;
@@ -21,13 +21,8 @@ namespace GestionEquipos
             var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
             builder.Services.AddSingleton(jwtSettings);
 
-            // 1. Obtienes solo el string de conexión
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-            // 2. Registras tu clase pasándole ese string
             builder.Services.AddScoped(sp => new DbContext(connectionString!));
-
-            // Add services to the container.
 
             builder.Services.AddControllers()
                 .AddJsonOptions(opts => { 
@@ -38,28 +33,27 @@ namespace GestionEquipos
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "GestionEquipos API",
-                    Version = "v1"
-                });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "GestionEquipos API", Version = "v1" });
 
-                var securityScheme = new OpenApiSecurityScheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Introducir 'Bearer {token}'"
-                };
+                    Description = "Ingresa tu token JWT aqui, por ejemplo: eyJhbGciOiJIUzI1..."
+                });
 
-                c.AddSecurityDefinition("Bearer", securityScheme);
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
                     {
-                        securityScheme, 
-                        Array.Empty<string>() 
+                        new OpenApiSecurityScheme {
+                            Reference = new OpenApiReference {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
                     }
                 });
             });
@@ -74,8 +68,6 @@ namespace GestionEquipos
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -85,13 +77,6 @@ namespace GestionEquipos
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateLifetime = true
-                };
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context => {
-                        Console.WriteLine("Token falló: " + context.Exception.Message);
-                        return Task.CompletedTask;
-                    }
                 };
             });
 
@@ -109,11 +94,17 @@ namespace GestionEquipos
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<IRolesRepository, RolesRepository>();
             builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+            builder.Services.AddScoped<IProveedorRepository, ProveedoresRepository>();
+            builder.Services.AddScoped<IEquiposRepository, EquiposRepository>();
+            builder.Services.AddScoped<IReportesRepository, ReportesRepository>();
 
             //SERVICIOS
             builder.Services.AddScoped<IUsuarioService, UsuarioService>();
             builder.Services.AddScoped<IRolesService, RolesService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IProveedorService, ProveedorService>();
+            builder.Services.AddScoped<IEquipoService, EquipoService>();
+            builder.Services.AddScoped<IReportesService, ReportesService>();
 
             var app = builder.Build();
 
